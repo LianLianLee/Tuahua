@@ -69,4 +69,6 @@ public class MovementApiImpl implements MovementApi {
         //构造返回值
         return new PageResult(page,pagesize,count,movements);
     }
+
+
 }
