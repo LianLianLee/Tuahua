@@ -2,8 +2,12 @@ package com.tanhua.server.service;
 
 import com.tanhua.autoconfig.template.OssTemplate;
 import com.tanhua.dubbo.api.MovementApi;
+import com.tanhua.dubbo.api.UserInfoApi;
+import com.tanhua.model.domain.UserInfo;
 import com.tanhua.model.mongo.Movement;
 import com.tanhua.model.vo.ErrorResult;
+import com.tanhua.model.vo.MovementsVo;
+import com.tanhua.model.vo.PageResult;
 import com.tanhua.server.exception.BusinessException;
 import com.tanhua.server.interceptor.UserHolder;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -24,6 +28,9 @@ public class MovementService {
 
     @DubboReference
     private MovementApi movementApi;
+
+    @DubboReference
+    private UserInfoApi userInfoApi;
 
     /**
      * 发布动态
@@ -46,5 +53,28 @@ public class MovementService {
         movement.setMedias(medias);
         //5、调用API完成发布动态
         movementApi.publish(movement);
+    }
+
+    //查询个人动态
+    public PageResult findByUserId(Long userId, Integer page, Integer pagesize) {
+        //1、根据用户id，调用API查询个人动态内容（PageResult  -- Movement）
+        PageResult pr = movementApi.findByUserId(userId,page,pagesize);
+        //2、获取PageResult中的item列表对象
+        List<Movement> items = (List<Movement>) pr.getItems();
+        //3、非空判断
+        if(items == null) {
+            return pr;
+        }
+        //4、循环数据列表
+        UserInfo userInfo = userInfoApi.findById(userId);
+        List<MovementsVo> vos = new ArrayList<>();
+        for (Movement item : items) {
+            //5、一个Movement构建一个Vo对象
+            MovementsVo vo = MovementsVo.init(userInfo, item);
+            vos.add(vo);
+        }
+        //6、构建返回值
+        pr.setItems(vos);
+        return pr;
     }
 }
