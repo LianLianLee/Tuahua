@@ -77,4 +77,7 @@ public class MovementService {
         pr.setItems(vos);
         return pr;
     }
+
+    public PageResult findFriendMovements(Integer page, Integer pagesize) {
+    }
 }
